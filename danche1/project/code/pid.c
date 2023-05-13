@@ -42,11 +42,13 @@ float Position3(float Encoder,float Target)
 {
     float pwm = 0;
     pos3.ek = Target - Encoder; // 计算当前误差
-    pos3.ek_sum += pos3.ek;      //求出偏差的积分
-	  if(pos3.ek_sum>pos3.ek_sumlimit)
-			pos3.ek_sum=pos3.ek_sumlimit;
-		else if(pos3.ek_sum<-pos3.ek_sumlimit)
-			pos3.ek_sum=-pos3.ek_sumlimit;
+    //pos3.ek_sum += pos3.ek;      //求出偏差的积分
+	  if(pos3.ek_sum<=pos3.ek_sumlimit&&pos3.ek_sum>=-pos3.ek_sumlimit)
+			pos3.ek_sum += pos3.ek;
+		else if(pos3.ek_sum<=-pos3.ek_sumlimit&&pos3.ek>0)
+			pos3.ek_sum += pos3.ek;
+		else if(pos3.ek_sum>=pos3.ek_sumlimit&&pos3.ek<0)
+			pos3.ek_sum += pos3.ek;
     pwm = pos3.kp*pos3.ek + pos3.ki*pos3.ek_sum+pos3.kd*(pos3.ek-pos3.ek_1);   //位置式pos1控制器
     pos3.ek_1 = pos3.ek;   //保存上一次偏差
     if(pwm > pos3.limit)
@@ -133,6 +135,7 @@ void pos3_Init()
     pos3.ek = 0;
     pos3.ek_1 = 0;
     pos3.ek_sum = 0;
+		pos3.ek_sumlimit=3000;
 }
 
 void pos4_Init(void)
