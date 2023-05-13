@@ -307,7 +307,7 @@ void pit_handler2(void)
 		pwm_set_duty(PWM_CH2,0);
 
 	//servobalance();
-	ptf("%f%f%f%f%f",duoji,ax,angle,suibiande,icm20602_gyro_transition(icm20602_gyro_x));
+	//ptf("%f%f%f%f%f",duoji,ax,angle,suibiande,icm20602_gyro_transition(icm20602_gyro_x));
 	
 //	if (angle > 15 || angle < -15)
 //		stop();
@@ -325,7 +325,7 @@ void pit_handler3(void)
 			KalmanFilter_Angle(gps_tau1201.direction, angle_z, &Kalman);
       angle_now=get_two_points_azimuth (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);			
 			distance=get_two_points_distance (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);
-			//ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
+			ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
 			//ptf("%lf%lf", angle_now, Kalman.Angle);
 			if(distance<4)
 				flag1=1;
