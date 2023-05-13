@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "zf_device_icm20602.h": "c",
+        "cmath": "c",
+        "random": "c",
+        "*.tcc": "c",
+        "__bit_reference": "c",
+        "__string": "c",
+        "cstring": "c"
+    }
+}
