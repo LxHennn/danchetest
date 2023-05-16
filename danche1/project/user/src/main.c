@@ -78,7 +78,7 @@ pos pos1, pos2, pos3, pos4, pos5, pos6;
 uint8 data_buffer[4];
 uint8 data_len;
 
-float e = 0;
+float e=-2;
 float angle_z =118, gyro_z;
 
 int i=0,j=1, p=0,q=1,flag_1 = 0, t = 0,flagd=0;
@@ -188,7 +188,7 @@ int main(void)
 			if(data_buffer[0]=='B')
 			{
 				i=0;
-        j=1;			
+        j=1;
 			}
 			memset(data_buffer, 0, 4);
 		}
@@ -211,12 +211,12 @@ void pit_handler0(void)
 {
 	icm20602_get_acc();
 	icm20602_get_gyro();
-	lingpiao();
+	//lingpiao();
 
-	if(lp>100)
-	{
+	//if(lp>100)
+	//{
 		suibiande = Low_Flilter1(icm20602_gyro_transition(icm20602_gyro_x), &gyrox);
-		PWM = Position1(suibiande, w)-encoder0/1000*290;
+		PWM = Position1(suibiande,w)-encoder0/1000*290;
 		if(PWM>10000)PWM=10000;
 		else if(PWM<-10000)PWM=-10000;
 		if (PWM > 0)
@@ -229,7 +229,7 @@ void pit_handler0(void)
 			gpio_set_level(DIR_CH1, 1);
 			pwm_set_duty(PWM_CH1, -PWM);
 		}
-	}
+	//}
 	
 	gyro_z = icm20602_gyro_transition(icm20602_gyro_z);
 	angle_z += ((gyro_z + 0.128405816) * 0.001);
@@ -242,13 +242,14 @@ void pit_handler0(void)
 float dajiao;
 float angle_err;
 
-float angle0,run=2;
+float angle0,run=1.5;
+int time;
 void pit_handler1(void)
 {
 	Angle_acc_cal();
 	angle = 0.99f * (angle - Low_Flilter2(icm20602_gyro_transition(icm20602_gyro_x) - err[0], &gyrox) / 200) + 0.01f * accr;
 	
-	w = -Position2(angle, e + v1);
+	w = -Position2(angle,e+v1);
 	
  	angle_err=Kalman.Angle-angle_now;
 	if(angle_err<-180)angle_err+=360;
@@ -259,8 +260,8 @@ void pit_handler1(void)
 	{
 		if(dajiao>0)      //左转
 		{
-			if(dajiao>10)
-				dajiao=10;
+			if(dajiao>6)
+				dajiao=6;
 			if(dajiao>3)
 				LEFT(dajiao);
 			else
@@ -268,8 +269,8 @@ void pit_handler1(void)
 		}
 		if(dajiao<0)
 		{
-			if(dajiao<-10)
-				dajiao=-10;
+			if(dajiao<-6)
+				dajiao=-6;
 			if(dajiao<-3)
 				RIGHT(dajiao);
 			else
@@ -277,10 +278,18 @@ void pit_handler1(void)
 		}
 	}
 	
+//	if(time>1000&&time<2000)
+//		//LEFT(10);
+//		RIGHT(-10);
+//	else if(time>2000)
+//		//LEFTBACK();
+//		RIGHTBACK();
+//	time++;
+	
 	if(duoji>-0.5&&duoji<0.5)
-		pos3.ek_sumlimit=3000;
+		pos3.ek_sumlimit=4000;
 	else
-		pos3.ek_sumlimit=8000;
+		pos3.ek_sumlimit=5000;
 }
 
 void pit_handler2(void)
@@ -303,11 +312,12 @@ void pit_handler2(void)
 		v2 = Position6(encoder2, run);
 		pwm_set_duty(PWM_CH2, v2);
 	}
-	else
+	else 
 		pwm_set_duty(PWM_CH2,0);
 
 	//servobalance();
 	//ptf("%f%f%f%f%f",duoji,ax,angle,suibiande,icm20602_gyro_transition(icm20602_gyro_x));
+	ptf("%f%f",PWM,pos1.ek_sum);
 	
 //	if (angle > 15 || angle < -15)
 //		stop();
@@ -325,9 +335,9 @@ void pit_handler3(void)
 			KalmanFilter_Angle(gps_tau1201.direction, angle_z, &Kalman);
       angle_now=get_two_points_azimuth (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);			
 			distance=get_two_points_distance (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);
-			ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
+			//ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
 			//ptf("%lf%lf", angle_now, Kalman.Angle);
-			if(distance<4)
+			if(distance<5.3)
 				flag1=1;
 			if(distance<2)
 			{
