@@ -95,6 +95,10 @@ float Position6(float Encoder,float Target)
     float pwm = 0;
     pos6.ek = Target - Encoder; // 计算当前误差
     pos6.ek_sum += pos6.ek;      //求出偏差的积分
+		if(pos6.ek_sum>pos6.ek_sumlimit)
+			pos6.ek_sum=pos6.ek_sumlimit;
+		else if(pos6.ek_sum<-pos6.ek_sumlimit)
+			pos6.ek_sum=-pos6.ek_sumlimit;
     pwm = pos6.kp*pos6.ek + pos6.ki*pos6.ek_sum+pos6.kd*(pos6.ek-pos6.ek_1);   //位置式pos1控制器
     pos6.ek_1 = pos6.ek;   //保存上一次偏差
     if(pwm > pos6.limit)
@@ -113,11 +117,12 @@ void pos1_Init()
     pos1.ek = 0;
     pos1.ek_1 = 0;
     pos1.ek_sum = 0;
+		pos1.ek_sumlimit=100000;
 }
 
 void pos2_Init()
 {
-    pos2.kp = 41;//48
+    pos2.kp = 43;//48
     pos2.ki = 0;
     pos2.kd = 3;//5
     pos2.limit = 5000;
@@ -162,11 +167,12 @@ void pos5_Init(void)
 
 void pos6_Init(void)
 {
-    pos6.kp = 100;
-    pos6.ki = 2;
+    pos6.kp = 600;
+    pos6.ki = 3;
     pos6.kd = 15;	
-    pos6.limit = 6000;
+    pos6.limit = 3000;
     pos6.ek = 0;
     pos6.ek_1 = 0;
     pos6.ek_sum = 0;
+		pos6.ek_sumlimit=1000;
 }

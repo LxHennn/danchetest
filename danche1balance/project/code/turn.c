@@ -12,7 +12,7 @@ void LEFT(double dajiao)
 	if(duoji<dajiao)
 	{
 		//e=-2-duoji/10;
-		e=0;
+		e=3.6;
 		duoji+=0.1;
 	}
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
@@ -23,10 +23,10 @@ void LEFTBACK(void)
 	if(duoji>0)
 	{
 		//e=-2-duoji/20;
-		e=-2;
+		e=1.6;
 		duoji-=0.1;
 	}
-	else e=-2;
+	else e=1.6;
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
 }
 
@@ -35,7 +35,7 @@ void RIGHT(double dajiao)
 	if(duoji>dajiao)
 	{
 		//e=-3+duoji/10;
-		e=-3;
+		e=0.6;
 		duoji-=0.1;
 	}
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
@@ -46,10 +46,10 @@ void RIGHTBACK(void)
 	if(duoji<0)
 	{
 		//e=-2+duoji/10;
-		e=-2;
+		e=1.6;
 		duoji+=0.1;
 	}
-	else e=-2;
+	else e=1.6;
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
 }
 

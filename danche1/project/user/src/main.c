@@ -78,7 +78,7 @@ pos pos1, pos2, pos3, pos4, pos5, pos6;
 uint8 data_buffer[4];
 uint8 data_len;
 
-float e=-2;
+float e=1.6;
 float angle_z =118, gyro_z;
 
 int i=0,j=1, p=0,q=1,flag_1 = 0, t = 0,flagd=0;
@@ -256,27 +256,27 @@ void pit_handler1(void)
 	else if(angle_err>180)angle_err-=360;
 	dajiao=0.2*angle_err;
 
-	if(flag1==1)
-	{
-		if(dajiao>0)      //左转
-		{
-			if(dajiao>6)
-				dajiao=6;
-			if(dajiao>3)
-				LEFT(dajiao);
-			else
-				LEFTBACK();
-		}
-		if(dajiao<0)
-		{
-			if(dajiao<-6)
-				dajiao=-6;
-			if(dajiao<-3)
-				RIGHT(dajiao);
-			else
-				RIGHTBACK();
-		}
-	}
+//	if(flag1==1)
+//	{
+//		if(dajiao>0)      //左转
+//		{
+//			if(dajiao>6)
+//				dajiao=6;
+//			if(dajiao>3)
+//				LEFT(dajiao);
+//			else
+//				LEFTBACK();
+//		}
+//		if(dajiao<0)
+//		{
+//			if(dajiao<-6)
+//				dajiao=-6;
+//			if(dajiao<-3)
+//				RIGHT(dajiao);
+//			else
+//				RIGHTBACK();
+//		}
+//	}
 	
 //	if(time>1000&&time<2000)
 //		//LEFT(10);
@@ -286,10 +286,21 @@ void pit_handler1(void)
 //		RIGHTBACK();
 //	time++;
 	
-	if(duoji>-0.5&&duoji<0.5)
-		pos3.ek_sumlimit=4000;
+	if(angle-e<0.5&&angle-e>-0.5)
+	{
+		pos1.ek_sumlimit=100000;
+		pos3.ek_sumlimit=2000;
+	}
 	else
-		pos3.ek_sumlimit=5000;
+	{
+		pos1.ek_sumlimit=700000;
+		pos3.ek_sumlimit=4000;
+	}
+	if(encoder0<1&&encoder0>-1)
+	{
+		pos1.ek_sum=0;
+		pos3.ek_sum=0;
+	}
 }
 
 void pit_handler2(void)
@@ -306,7 +317,6 @@ void pit_handler2(void)
 	
 //ptf("%f",encoder2);
 
-	
 	if(flagd)
 	{
 		v2 = Position6(encoder2, run);
@@ -315,9 +325,11 @@ void pit_handler2(void)
 	else 
 		pwm_set_duty(PWM_CH2,0);
 
+	if(encoder2>run+1.5)
+		pos6.ek_sum=0;
 	//servobalance();
 	//ptf("%f%f%f%f%f",duoji,ax,angle,suibiande,icm20602_gyro_transition(icm20602_gyro_x));
-	ptf("%f%f",PWM,pos1.ek_sum);
+	ptf("%f%f%f",PWM,pos6.ek_sum,encoder2);
 	
 //	if (angle > 15 || angle < -15)
 //		stop();
@@ -344,7 +356,7 @@ void pit_handler3(void)
 				i+=2;
 			  j+=2;
 			}
-		}	
+		}
 	}
 }
 

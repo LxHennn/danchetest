@@ -78,10 +78,10 @@ pos pos1, pos2, pos3, pos4, pos5, pos6;
 uint8 data_buffer[4];
 uint8 data_len;
 
-float e=-2;
+float e=1.6;
 float angle_z =118, gyro_z;
 
-int i=0,j=1, p=0,q=1,flag_1 = 0, t = 0,flagd=1;
+int i=0,j=1, p=0,q=1,flag_1 = 0, t = 0,flagd=0;
 double angle_now=0;
 int flag1;
 int num;
@@ -174,7 +174,7 @@ int main(void)
 				    j+=2;
 						//flash_write_page_from_buffer(FLASH_SECTION_INDEX, FLASH_PAGE_INDEX);
 						}
-					}
+				}
 			}
 
 			if(data_buffer[0]=='S')
@@ -188,12 +188,20 @@ int main(void)
 			if(data_buffer[0]=='B')
 			{
 				i=0;
-        j=1;
+				j=1;
 			}
+			if(data_buffer[0]=='Q')
+				e+=0.2;
+			if(data_buffer[0]=='W')
+				e-=0.2;
+			if(data_buffer[0]=='E')
+				duoji++;
+			if(data_buffer[0]=='R')
+				duoji--;
 			memset(data_buffer, 0, 4);
 		}
-		}
 	}
+}
 extern float accr;
 extern float err[3];
 extern int lp;
@@ -221,7 +229,7 @@ void pit_handler0(void)
 		else if(PWM<-10000)PWM=-10000;
 		if (PWM > 0)
 		{
-				gpio_set_level(DIR_CH1, 0);
+			gpio_set_level(DIR_CH1, 0);
 			pwm_set_duty(PWM_CH1, PWM);
 		}
 		else
@@ -278,18 +286,38 @@ void pit_handler1(void)
 //		}
 //	}
 	
-	if(time>1000&&time<2000)
-		//LEFT(3);
-		RIGHT(-10);
-	else if(time>2000)
-		//LEFTBACK();
-		RIGHTBACK();
-	time++;
+//	if(time>1000&&time<2000)
+//		//LEFT(3);
+//		RIGHT(-10);
+//	else if(time>2000)
+//		//LEFTBACK();
+//		RIGHTBACK();
+//	time++;
 	
-	if(duoji>-0.5&&duoji<0.5)
-		pos3.ek_sumlimit=4000;
+//	if(duoji>-0.5&&duoji<0.5)
+//		pos3.ek_sumlimit=2000;
+//	else
+//		pos3.ek_sumlimit=8000;
+	if(angle-e<1&&angle-e>-1)
+	{
+		pos1.ek_sumlimit=100000;
+		pos3.ek_sumlimit=2000;
+//		if(angle-e<0.3&&angle-e>-0.3)
+//		{
+//			pos1.ek_sum=0;
+//			pos3.ek_sum=0;
+//		}
+	}
 	else
-		pos3.ek_sumlimit=8000;
+	{
+		pos1.ek_sumlimit=700000;
+		pos3.ek_sumlimit=4000;
+	}
+	if(encoder0<2&&encoder0>-2)
+	{
+		//pos1.ek_sum=0;
+		pos3.ek_sum=0;
+	}
 }
 
 void pit_handler2(void)
@@ -321,6 +349,8 @@ void pit_handler2(void)
 	
 //	if (angle > 15 || angle < -15)
 //		stop();
+	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
+	ptf("%f%f%f%f%f%f",PWM,angle,e,duoji,pos1.ek_sum,encoder0);
 }
 
 float distance;
@@ -335,7 +365,7 @@ void pit_handler3(void)
 			KalmanFilter_Angle(gps_tau1201.direction, angle_z, &Kalman);
       angle_now=get_two_points_azimuth (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);			
 			distance=get_two_points_distance (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);
-			ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
+			//ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
 			//ptf("%lf%lf", angle_now, Kalman.Angle);
 			if(distance<4)
 				flag1=1;

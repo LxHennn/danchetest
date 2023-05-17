@@ -6,7 +6,21 @@ float Position1(float Encoder,float Target)
 {
     float pwm = 0;
     pos1.ek = Target - Encoder; // 计算当前误差
-    pos1.ek_sum += pos1.ek;      //求出偏差的积分
+    //pos1.ek_sum += pos1.ek;      //求出偏差的积分
+		if(pos1.ek_sum<=pos1.ek_sumlimit&&pos1.ek_sum>=-pos1.ek_sumlimit)
+			pos1.ek_sum += pos1.ek;
+		else if(pos1.ek_sum<=-pos1.ek_sumlimit)
+		{
+			pos1.ek_sum=-pos1.ek_sumlimit;
+			if(pos1.ek>0)
+				pos1.ek_sum += pos1.ek;
+		}
+		else if(pos1.ek_sum>=pos1.ek_sumlimit)
+		{
+			pos1.ek_sum=pos1.ek_sumlimit;
+			if(pos1.ek<0)
+				pos1.ek_sum += pos1.ek;
+		}
     pwm = pos1.kp*pos1.ek + pos1.ki*pos1.ek_sum+pos1.kd*(pos1.ek-pos1.ek_1);   //位置式pos1控制器
     pos1.ek_1 = pos1.ek;   //保存上一次偏差
     if(pwm > pos1.limit)
@@ -45,10 +59,18 @@ float Position3(float Encoder,float Target)
     //pos3.ek_sum += pos3.ek;      //求出偏差的积分
 	  if(pos3.ek_sum<=pos3.ek_sumlimit&&pos3.ek_sum>=-pos3.ek_sumlimit)
 			pos3.ek_sum += pos3.ek;
-		else if(pos3.ek_sum<=-pos3.ek_sumlimit&&pos3.ek>0)
-			pos3.ek_sum += pos3.ek;
-		else if(pos3.ek_sum>=pos3.ek_sumlimit&&pos3.ek<0)
-			pos3.ek_sum += pos3.ek;
+		else if(pos3.ek_sum<=-pos3.ek_sumlimit)
+		{
+			pos3.ek_sum=-pos3.ek_sumlimit;
+			if(pos3.ek>0)
+				pos3.ek_sum += pos3.ek;
+		}
+		else if(pos3.ek_sum>=pos3.ek_sumlimit)
+		{
+			pos3.ek_sum=pos3.ek_sumlimit;
+			if(pos3.ek<0)
+				pos3.ek_sum += pos3.ek;
+		}
     pwm = pos3.kp*pos3.ek + pos3.ki*pos3.ek_sum+pos3.kd*(pos3.ek-pos3.ek_1);   //位置式pos1控制器
     pos3.ek_1 = pos3.ek;   //保存上一次偏差
     if(pwm > pos3.limit)
@@ -106,20 +128,21 @@ float Position6(float Encoder,float Target)
 
 void pos1_Init()
 {
-    pos1.kp = 25;//21
-    pos1.ki = 0.004;
+    pos1.kp = 21;//21
+    pos1.ki = 0.003;
     pos1.kd = 0;
     pos1.limit = 10000;
     pos1.ek = 0;
     pos1.ek_1 = 0;
     pos1.ek_sum = 0;
+		pos1.ek_sumlimit=100000;
 }
 
 void pos2_Init()
 {
-    pos2.kp = 41;//48
+    pos2.kp = 53;//48
     pos2.ki = 0;
-    pos2.kd = 3;//5
+    pos2.kd = 4;//5
     pos2.limit = 5000;
     pos2.ek = 0;
     pos2.ek_1 = 0;
@@ -129,7 +152,7 @@ void pos2_Init()
 void pos3_Init()
 {
     pos3.kp = 0.18;//0.22
-    pos3.ki = 0.0003;
+    pos3.ki = 0.0005;
     pos3.kd = 0;
     pos3.limit = 180;
     pos3.ek = 0;
