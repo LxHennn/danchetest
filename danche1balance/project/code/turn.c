@@ -7,12 +7,14 @@
 #define SERVO_MOTOR_FREQ        (50)
 #define SERVO_MOTOR_DUTY(x)     ((float)PWM_DUTY_MAX/(1000.0/(float)SERVO_MOTOR_FREQ)*(0.5+(float)(x)/90.0))
 
+extern int dajiaoflag;
+
 void LEFT(double dajiao)
 {
 	if(duoji<dajiao)
 	{
 		//e=-2-duoji/10;
-		e=3.6;
+		e+=0.01;
 		duoji+=0.1;
 	}
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
@@ -23,10 +25,14 @@ void LEFTBACK(void)
 	if(duoji>0)
 	{
 		//e=-2-duoji/20;
-		e=1.6;
+		e-=0.01;
 		duoji-=0.1;
 	}
-	else e=1.6;
+	else 
+	{
+		e=1.6;
+		dajiaoflag=0;
+	}
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
 }
 
@@ -35,7 +41,7 @@ void RIGHT(double dajiao)
 	if(duoji>dajiao)
 	{
 		//e=-3+duoji/10;
-		e=0.6;
+		e-=0.01;
 		duoji-=0.1;
 	}
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
@@ -46,10 +52,14 @@ void RIGHTBACK(void)
 	if(duoji<0)
 	{
 		//e=-2+duoji/10;
-		e=1.6;
+		e+=0.01;
 		duoji+=0.1;
 	}
-	else e=1.6;
+	else 
+	{
+		e=1.6;
+		dajiaoflag=0;
+	}
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
 }
 

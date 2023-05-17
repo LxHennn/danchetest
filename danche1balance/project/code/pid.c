@@ -57,7 +57,7 @@ float Position3(float Encoder,float Target)
     float pwm = 0;
     pos3.ek = Target - Encoder; // 计算当前误差
     //pos3.ek_sum += pos3.ek;      //求出偏差的积分
-	  if(pos3.ek_sum<=pos3.ek_sumlimit&&pos3.ek_sum>=-pos3.ek_sumlimit)
+	  if(pos3.ek_sum<pos3.ek_sumlimit&&pos3.ek_sum>-pos3.ek_sumlimit)
 			pos3.ek_sum += pos3.ek;
 		else if(pos3.ek_sum<=-pos3.ek_sumlimit)
 		{
@@ -128,21 +128,21 @@ float Position6(float Encoder,float Target)
 
 void pos1_Init()
 {
-    pos1.kp = 21;//21
-    pos1.ki = 0.003;
+    pos1.kp = 19;//21
+    pos1.ki = 0.004;
     pos1.kd = 0;
     pos1.limit = 10000;
     pos1.ek = 0;
     pos1.ek_1 = 0;
     pos1.ek_sum = 0;
-		pos1.ek_sumlimit=100000;
+		pos1.ek_sumlimit=700000;
 }
 
 void pos2_Init()
 {
-    pos2.kp = 53;//48
+    pos2.kp = 58;//48
     pos2.ki = 0;
-    pos2.kd = 4;//5
+    pos2.kd = 10;//5
     pos2.limit = 5000;
     pos2.ek = 0;
     pos2.ek_1 = 0;
@@ -152,13 +152,13 @@ void pos2_Init()
 void pos3_Init()
 {
     pos3.kp = 0.18;//0.22
-    pos3.ki = 0.0005;
+    pos3.ki = 0.0003;//0.0005
     pos3.kd = 0;
     pos3.limit = 180;
     pos3.ek = 0;
     pos3.ek_1 = 0;
     pos3.ek_sum = 0;
-		pos3.ek_sumlimit=4000;
+		pos3.ek_sumlimit=1000;
 }
 
 void pos4_Init(void)
@@ -185,8 +185,8 @@ void pos5_Init(void)
 
 void pos6_Init(void)
 {
-    pos6.kp = 100;
-    pos6.ki = 2;
+    pos6.kp = 600;
+    pos6.ki = 3;//2
     pos6.kd = 15;	
     pos6.limit = 6000;
     pos6.ek = 0;

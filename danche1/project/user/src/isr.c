@@ -171,8 +171,10 @@ void LPUART8_IRQHandler(void)
     LPUART_ClearStatusFlags(LPUART8, kLPUART_RxOverrunFlag);    // 不允许删除
 }
 
-extern void key1_exti_handler (void);
+extern void key1_exti_handler(void);
 extern void key2_exti_handler(void);
+extern void key3_exti_handler(void);
+extern void key4_exti_handler(void);
 
 void GPIO1_Combined_0_15_IRQHandler(void)
 {
@@ -214,7 +216,8 @@ void GPIO2_Combined_16_31_IRQHandler(void)
     {
         exti_flag_clear(C16); // 清除中断标志位
     }
-   
+    key3_exti_handler();
+    key4_exti_handler();
 }
 
 

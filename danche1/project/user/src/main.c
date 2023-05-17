@@ -51,6 +51,8 @@
 
 #define KEY1 				(C4)//(C31)
 #define KEY2        (D4)//(C27) 
+#define KEY3				(C26)
+#define KEY4				(C31)
 
 #define FLASH_SECTION_INDEX (127) // 存储数据用的扇区 倒数第一个扇形
 #define FLASH_PAGE_INDEX (FLASH_PAGE_3)
@@ -118,6 +120,8 @@ int main(void)
 	wireless_uart_init();
 	exti_init(KEY1, EXTI_TRIGGER_LOW);
 	exti_init(KEY2, EXTI_TRIGGER_LOW);
+	exti_init(KEY3, EXTI_TRIGGER_LOW);
+	exti_init(KEY4, EXTI_TRIGGER_LOW);
 
 	pit_ms_init(PIT_CH0, 1);
 	pit_ms_init(PIT_CH1, 5);
@@ -165,7 +169,7 @@ int main(void)
 					gps_tau1201_flag = 0;
 					if (!gps_data_parse()) // 开始解析数据
 					{
-						caidian[i]= gps_tau1201.latitude;	 // 获取纬度
+						caidian[i]= gps_tau1201.latitude;	 	 // 获取纬度
 					  caidian[j]= gps_tau1201.longitude; 	 // 获取经度				
 						
 						for(int c=0;c<30;c++)
@@ -240,6 +244,7 @@ void pit_handler0(void)
 }
 
 float dajiao;
+int dajiaoflag;
 float angle_err;
 
 float angle0,run=1.5;
@@ -256,28 +261,34 @@ void pit_handler1(void)
 	else if(angle_err>180)angle_err-=360;
 	dajiao=0.2*angle_err;
 
-//	if(flag1==1)
-//	{
-//		if(dajiao>0)      //左转
-//		{
-//			if(dajiao>6)
-//				dajiao=6;
-//			if(dajiao>3)
-//				LEFT(dajiao);
-//			else
-//				LEFTBACK();
-//		}
-//		if(dajiao<0)
-//		{
-//			if(dajiao<-6)
-//				dajiao=-6;
-//			if(dajiao<-3)
-//				RIGHT(dajiao);
-//			else
-//				RIGHTBACK();
-//		}
-//	}
-	
+	if(flag1==1)
+	{
+		if(dajiao>0)      //左转
+		{
+			if(dajiao>6)
+				dajiao=6;
+			if(dajiao>3)
+			{
+				LEFT(dajiao);
+				dajiaoflag=1;
+			}
+			else if (dajiaoflag)
+				LEFTBACK();
+		}
+		else if(dajiao<0)
+		{
+			if(dajiao<-6)
+				dajiao=-6;	
+			if(dajiao<-3)
+			{
+				RIGHT(dajiao);
+				dajiaoflag=1;
+			}
+			else if(dajiaoflag)
+				RIGHTBACK();
+		}
+	}
+
 //	if(time>1000&&time<2000)
 //		//LEFT(10);
 //		RIGHT(-10);
@@ -286,21 +297,16 @@ void pit_handler1(void)
 //		RIGHTBACK();
 //	time++;
 	
-	if(angle-e<0.5&&angle-e>-0.5)
-	{
-		pos1.ek_sumlimit=100000;
-		pos3.ek_sumlimit=2000;
-	}
-	else
-	{
-		pos1.ek_sumlimit=700000;
-		pos3.ek_sumlimit=4000;
-	}
-	if(encoder0<1&&encoder0>-1)
-	{
-		pos1.ek_sum=0;
-		pos3.ek_sum=0;
-	}
+//	if(encoder0<1&&encoder0>-1)
+//	{
+//		pos1.ek_sumlimit=100000;
+//		pos3.ek_sumlimit=2000;
+//	}
+//	else
+//	{
+//		pos1.ek_sumlimit=700000;
+//		pos3.ek_sumlimit=7000;
+//	}
 }
 
 void pit_handler2(void)
@@ -329,10 +335,10 @@ void pit_handler2(void)
 		pos6.ek_sum=0;
 	//servobalance();
 	//ptf("%f%f%f%f%f",duoji,ax,angle,suibiande,icm20602_gyro_transition(icm20602_gyro_x));
-	ptf("%f%f%f",PWM,pos6.ek_sum,encoder2);
+	//ptf("%f%f%f",PWM,pos6.ek_sum,encoder2);
 	
-//	if (angle > 15 || angle < -15)
-//		stop();
+	if (angle > 15 || angle < -15)
+		flagd=0;
 }
 
 float distance;
@@ -347,7 +353,7 @@ void pit_handler3(void)
 			KalmanFilter_Angle(gps_tau1201.direction, angle_z, &Kalman);
       angle_now=get_two_points_azimuth (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);			
 			distance=get_two_points_distance (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);
-			//ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
+			ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
 			//ptf("%lf%lf", angle_now, Kalman.Angle);
 			if(distance<5.3)
 				flag1=1;
@@ -414,4 +420,47 @@ void key2_exti_handler(void)
 	}
 	else
 		key2=0;
+}
+
+int key3;
+void key3_exti_handler(void)
+{
+	if (exti_flag_get(KEY3))
+	{
+		if(key3==500)
+		{
+			flagd=1;
+			key3=0;
+		}
+		else
+		{
+			key3++;
+			system_delay_ms(1);
+		}
+		exti_flag_clear(KEY3);
+	}
+	else
+		key3=0;
+}
+
+int key4;
+void key4_exti_handler(void)
+{
+	if (exti_flag_get(KEY4))
+	{
+		if(key4==500)
+		{
+			i=0;
+			j=1;
+			key4=0;
+		}
+		else
+		{
+			key4++;
+			system_delay_ms(1);
+		}
+		exti_flag_clear(KEY4);
+	}
+	else
+		key4=0;
 }

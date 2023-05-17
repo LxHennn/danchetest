@@ -51,6 +51,7 @@
 
 #define KEY1 				(C4)//(C31)
 #define KEY2        (D4)//(C27) 
+#define KEY3				(C26)
 
 #define FLASH_SECTION_INDEX (127) // 存储数据用的扇区 倒数第一个扇形
 #define FLASH_PAGE_INDEX (FLASH_PAGE_3)
@@ -104,6 +105,7 @@ void servobalance()
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
 }
 
+extern float dajiao;
 int main(void)
 {
 	clock_init(SYSTEM_CLOCK_600M); // 不可删除
@@ -118,6 +120,7 @@ int main(void)
 	wireless_uart_init();
 	exti_init(KEY1, EXTI_TRIGGER_LOW);
 	exti_init(KEY2, EXTI_TRIGGER_LOW);
+	exti_init(KEY3, EXTI_TRIGGER_LOW);
 
 	pit_ms_init(PIT_CH0, 1);
 	pit_ms_init(PIT_CH1, 5);
@@ -191,13 +194,13 @@ int main(void)
 				j=1;
 			}
 			if(data_buffer[0]=='Q')
-				e+=0.2;
+				dajiao=7;
 			if(data_buffer[0]=='W')
-				e-=0.2;
+				dajiao=-7;
 			if(data_buffer[0]=='E')
-				duoji++;
+				dajiao++;
 			if(data_buffer[0]=='R')
-				duoji--;
+				dajiao--;
 			memset(data_buffer, 0, 4);
 		}
 	}
@@ -219,10 +222,10 @@ void pit_handler0(void)
 {
 	icm20602_get_acc();
 	icm20602_get_gyro();
-	lingpiao();
+//	lingpiao();
 
-	if(lp>100)
-	{
+	//if(lp>100)
+	//{
 		suibiande = Low_Flilter1(icm20602_gyro_transition(icm20602_gyro_x), &gyrox);
 		PWM = Position1(suibiande,w)-encoder0/1000*290;
 		if(PWM>10000)PWM=10000;
@@ -237,7 +240,7 @@ void pit_handler0(void)
 			gpio_set_level(DIR_CH1, 1);
 			pwm_set_duty(PWM_CH1, -PWM);
 		}
-	}
+	//}
 	
 	gyro_z = icm20602_gyro_transition(icm20602_gyro_z);
 	angle_z += ((gyro_z + 0.128405816) * 0.001);
@@ -248,6 +251,7 @@ void pit_handler0(void)
 }
 
 float dajiao;
+int dajiaoflag;
 float angle_err;
 
 float angle0,run=1.5;
@@ -255,14 +259,14 @@ int time;
 void pit_handler1(void)
 {
 	Angle_acc_cal();
-	angle = 0.99f * (angle - Low_Flilter2(icm20602_gyro_transition(icm20602_gyro_x) - err[0], &gyrox) / 200) + 0.01f * accr;
+	angle = 0.99f * (angle - Low_Flilter2(icm20602_gyro_transition(icm20602_gyro_x), &gyrox) / 200) + 0.01f * accr;
 	
 	w = -Position2(angle,e+v1);
 	
  	angle_err=Kalman.Angle-angle_now;
 	if(angle_err<-180)angle_err+=360;
 	else if(angle_err>180)angle_err-=360;
-	dajiao=0.2*angle_err;
+	//dajiao=0.2*angle_err;
 
 //	if(flag1==1)
 //	{
@@ -285,39 +289,62 @@ void pit_handler1(void)
 //				RIGHTBACK();
 //		}
 //	}
+
+		if(dajiao>0)      //左转
+		{
+			if(dajiao>6)
+				dajiao=6;
+			if(dajiao>3)
+			{
+				LEFT(dajiao);
+				dajiaoflag=1;
+			}
+			else if (dajiaoflag)
+				LEFTBACK();
+		}
+		else if(dajiao<0)
+		{
+			if(dajiao<-6)
+				dajiao=-6;	
+			if(dajiao<-3)
+			{
+				RIGHT(dajiao);
+				dajiaoflag=1;
+			}
+			else if(dajiaoflag)
+				RIGHTBACK();
+		}
 	
 //	if(time>1000&&time<2000)
-//		//LEFT(3);
-//		RIGHT(-10);
+//		LEFT(10);
+//		//RIGHT(-10);
 //	else if(time>2000)
-//		//LEFTBACK();
-//		RIGHTBACK();
+//		LEFTBACK();
+//		//RIGHTBACK();
 //	time++;
 	
 //	if(duoji>-0.5&&duoji<0.5)
 //		pos3.ek_sumlimit=2000;
 //	else
 //		pos3.ek_sumlimit=8000;
-	if(angle-e<1&&angle-e>-1)
-	{
-		pos1.ek_sumlimit=100000;
-		pos3.ek_sumlimit=2000;
-//		if(angle-e<0.3&&angle-e>-0.3)
-//		{
-//			pos1.ek_sum=0;
-//			pos3.ek_sum=0;
-//		}
-	}
-	else
-	{
-		pos1.ek_sumlimit=700000;
-		pos3.ek_sumlimit=4000;
-	}
-	if(encoder0<2&&encoder0>-2)
-	{
-		//pos1.ek_sum=0;
-		pos3.ek_sum=0;
-	}
+//	if(angle-e<1&&angle-e>-1)
+//	{
+////		pos1.ek_sumlimit=100000;
+//		pos3.ek_sumlimit=2000;
+//	}
+//	else
+//	{
+//		pos1.ek_sumlimit=700000;
+//		pos3.ek_sumlimit=4000;
+//	}
+//	if(encoder0<1&&encoder0>-1)
+//	{
+//		pos3.ek_sumlimit=2000;
+//	}
+//	else
+//	{
+//		pos3.ek_sumlimit=8000;
+//	}
 }
 
 void pit_handler2(void)
@@ -333,7 +360,6 @@ void pit_handler2(void)
 	encoder_clear_count(ENCODER_QUADDEC);
 	
 //ptf("%f",encoder2);
-
 	
 	if(flagd)
 	{
@@ -346,36 +372,36 @@ void pit_handler2(void)
 	//servobalance();
 	//ptf("%f%f%f%f%f",duoji,ax,angle,suibiande,icm20602_gyro_transition(icm20602_gyro_x));
 	//ptf("%f",PWM);
-	
-//	if (angle > 15 || angle < -15)
-//		stop();
+
+	if (angle > 15 || angle < -15)
+		flagd=0;
 	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
-	ptf("%f%f%f%f%f%f",PWM,angle,e,duoji,pos1.ek_sum,encoder0);
+	ptf("%f%f%f%f%f%f",PWM,angle,e,duoji,pos3.ek_sum,encoder0);
 }
 
 float distance;
 void pit_handler3(void)
 {
-	angle_z -= 0.030309;
-	if (gps_tau1201_flag)
-	{
-		gps_tau1201_flag = 0;
-		if (!gps_data_parse()) // 开始解析数据
-		{
-			KalmanFilter_Angle(gps_tau1201.direction, angle_z, &Kalman);
-      angle_now=get_two_points_azimuth (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);			
-			distance=get_two_points_distance (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);
-			//ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
-			//ptf("%lf%lf", angle_now, Kalman.Angle);
-			if(distance<4)
-				flag1=1;
-			if(distance<2)
-			{
-				i+=2;
-			  j+=2;
-			}
-		}	
-	}
+//	angle_z -= 0.030309;
+//	if (gps_tau1201_flag)
+//	{
+//		gps_tau1201_flag = 0;
+//		if (!gps_data_parse()) // 开始解析数据
+//		{
+//			KalmanFilter_Angle(gps_tau1201.direction, angle_z, &Kalman);
+//      angle_now=get_two_points_azimuth (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);			
+//			distance=get_two_points_distance (gps_tau1201.latitude,gps_tau1201.longitude, caidian[i], caidian[j]);
+//			//ptf("%f%f%lf%f%f%lf%lf%lf%lf%lf%d%d",angle_z,Kalman.Angle,angle_now,duoji,dajiao,distance,gps_tau1201.latitude,gps_tau1201.longitude,caidian[i],caidian[j],i,j);
+//			//ptf("%lf%lf", angle_now, Kalman.Angle);
+//			if(distance<4)
+//				flag1=1;
+//			if(distance<2)
+//			{
+//				i+=2;
+//			  j+=2;
+//			}
+//		}	
+//	}
 }
 
 int key1;
@@ -432,4 +458,25 @@ void key2_exti_handler(void)
 	}
 	else
 		key2=0;
+}
+
+int key3;
+void key3_exti_handler(void)
+{
+	if (exti_flag_get(KEY3))
+	{
+		if(key3==500)
+		{
+			flagd=1;
+			key3=0;
+		}
+		else
+		{
+			key3++;
+			system_delay_ms(1);
+		}
+		exti_flag_clear(KEY3);
+	}
+	else
+		key3=0;
 }
