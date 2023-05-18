@@ -80,7 +80,7 @@ pos pos1, pos2, pos3, pos4, pos5, pos6;
 uint8 data_buffer[4];
 uint8 data_len;
 
-float e=1.6;
+float e=0.7;
 float angle_z =118, gyro_z;
 
 int i=0,j=1, p=0,q=1,flag_1 = 0, t = 0,flagd=0;
