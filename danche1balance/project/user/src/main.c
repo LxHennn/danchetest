@@ -79,10 +79,11 @@ pos pos1, pos2, pos3, pos4, pos5, pos6;
 uint8 data_buffer[4];
 uint8 data_len;
 
-float e=0.7;
+float e=0;
 float angle_z =118, gyro_z;
 
 int i=0,j=1, p=0,q=1,flag_1 = 0, t = 0,flagd=0;
+bool flagbalance=false;
 double angle_now=0;
 int flag1;
 int num;
@@ -102,7 +103,7 @@ void servobalance()
 	duoji=atan((L/d)*tan(asin(temp)))*180/PI;
 	if(duoji>40)duoji=40;
 	else if(duoji<-40)duoji=-40;
-	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
+	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(92-duoji));
 }
 
 extern float dajiao;
@@ -138,7 +139,7 @@ int main(void)
 
 	pwm_init(PWM_CH1, 1000, 0);
 	pwm_init(PWM_CH2, 1000, 0);
-	pwm_init(SERVO_MOTOR_PWM, SERVO_MOTOR_FREQ, SERVO_MOTOR_DUTY(93));
+	pwm_init(SERVO_MOTOR_PWM, SERVO_MOTOR_FREQ, SERVO_MOTOR_DUTY(92));
 	gpio_init(DIR_CH1, GPO, GPIO_HIGH, GPO_PUSH_PULL);
 	gpio_init(DIR_CH2, GPO, GPIO_HIGH, GPO_PUSH_PULL);
 	
@@ -194,18 +195,18 @@ int main(void)
 				j=1;
 			}
 			if(data_buffer[0]=='Q')
-				dajiao=7;
+				e+=0.2;
 			if(data_buffer[0]=='W')
-				dajiao=-7;
+				e-=0.2;
 			if(data_buffer[0]=='E')
-				dajiao++;
+				dajiao=7;
 			if(data_buffer[0]=='R')
-				dajiao--;
+				dajiao=-7;
 			memset(data_buffer, 0, 4);
 		}
 	}
 }
-extern float accr;
+extern float accr,accp;
 extern float err[3];
 extern int lp;
 
@@ -224,12 +225,12 @@ void pit_handler0(void)
 	icm20602_get_gyro();
 //	lingpiao();
 
-	//if(lp>100)
-	//{
+//	if(flagbalance)
+//	{
 		suibiande = Low_Flilter1(icm20602_gyro_transition(icm20602_gyro_x), &gyrox);
 		PWM = Position1(suibiande,w)-encoder0/1000*290;
-		if(PWM>10000)PWM=10000;
-		else if(PWM<-10000)PWM=-10000;
+		if(PWM>9000)PWM=9000;
+		else if(PWM<-9000)PWM=-9000;
 		if (PWM > 0)
 		{
 			gpio_set_level(DIR_CH1, 0);
@@ -240,7 +241,7 @@ void pit_handler0(void)
 			gpio_set_level(DIR_CH1, 1);
 			pwm_set_duty(PWM_CH1, -PWM);
 		}
-	//}
+//	}
 	
 	gyro_z = icm20602_gyro_transition(icm20602_gyro_z);
 	angle_z += ((gyro_z + 0.128405816) * 0.001);
@@ -253,13 +254,15 @@ void pit_handler0(void)
 float dajiao;
 int dajiaoflag;
 float angle_err;
+float pitch;
 
 float angle0,run=1.5;
 int time;
 void pit_handler1(void)
 {
 	Angle_acc_cal();
-	angle = 0.99f * (angle - Low_Flilter2(icm20602_gyro_transition(icm20602_gyro_x), &gyrox) / 200) + 0.01f * accr;
+	angle=0.99f*(angle-Low_Flilter2(icm20602_gyro_transition(icm20602_gyro_x), &gyrox)/200) + 0.01f * accr;
+	pitch=0.99f*(pitch-Low_Flilter2(icm20602_gyro_transition(icm20602_gyro_y), &gyroy)/200) - 0.01f * accp;
 	
 	w = -Position2(angle,e+v1);
 	
@@ -314,39 +317,8 @@ void pit_handler1(void)
 			else if(dajiaoflag)
 				RIGHTBACK();
 		}
-	
-//	if(time>1000&&time<2000)
-//		LEFT(10);
-//		//RIGHT(-10);
-//	else if(time>2000)
-//		LEFTBACK();
-//		//RIGHTBACK();
-//	time++;
-	
-//	if(duoji>-0.5&&duoji<0.5)
-//		pos3.ek_sumlimit=2000;
-//	else
-//		pos3.ek_sumlimit=8000;
-//	if(angle-e<1&&angle-e>-1)
-//	{
-////		pos1.ek_sumlimit=100000;
-//		pos3.ek_sumlimit=2000;
-//	}
-//	else
-//	{
-//		pos1.ek_sumlimit=700000;
-//		pos3.ek_sumlimit=4000;
-//	}
-//	if(encoder0<1&&encoder0>-1)
-//	{
-//		pos3.ek_sumlimit=2000;
-//	}
-//	else
-//	{
-//		pos3.ek_sumlimit=8000;
-//	}
 }
-
+float po;
 void pit_handler2(void)
 {
 	encoder0 = (float)encoder_get_count(ENCODER1_TIM);
@@ -359,11 +331,15 @@ void pit_handler2(void)
 	encoder2 = (float)encoder_get_count(ENCODER_QUADDEC);
 	encoder_clear_count(ENCODER_QUADDEC);
 	
-//ptf("%f",encoder2);
+//	if(encoder2>=1.5)flagd=1;
+	
+	if(pitch>4)po=2000;
+	else if(pitch<2.5)po=0;
 	
 	if(flagd)
 	{
 		v2 = Position6(encoder2, run);
+//		pwm_set_duty(PWM_CH2, v2+po);
 		pwm_set_duty(PWM_CH2, v2);
 	}
 	else
@@ -375,8 +351,8 @@ void pit_handler2(void)
 
 	if (angle > 15 || angle < -15)
 		flagd=0;
-	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(93-duoji));
-	ptf("%f%f%f%f%f%f",PWM,angle,e,duoji,pos3.ek_sum,encoder0);
+	pwm_set_duty(SERVO_MOTOR_PWM,SERVO_MOTOR_DUTY(92-duoji));
+	//ptf("%f%f%f%f%f%f",PWM,angle,e,duoji,pitch,encoder0);
 }
 
 float distance;

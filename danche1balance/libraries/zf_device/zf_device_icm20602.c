@@ -421,6 +421,7 @@ void Angle_acc_cal(void)
 		}
 		else
 		accr=atan(acy/sqrt(acx*acx+acz*acz))*180/PI;
+		accp=atan(acx/sqrt(acy*acy+acz*acz))*180/PI;
         //ptf("%f",accr);
 //	else
 //	{

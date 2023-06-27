@@ -128,8 +128,8 @@ float Position6(float Encoder,float Target)
 
 void pos1_Init()
 {
-    pos1.kp = 18;//21
-    pos1.ki = 0.003;
+    pos1.kp = 19;//21
+    pos1.ki = 0;
     pos1.kd = 0;
     pos1.limit = 10000;
     pos1.ek = 0;
@@ -140,10 +140,10 @@ void pos1_Init()
 
 void pos2_Init()
 {
-    pos2.kp = 45;//48
+    pos2.kp = 50;//48
     pos2.ki = 0;
-    pos2.kd = 0;//5
-    pos2.limit = 5000;
+    pos2.kd = 8;//5
+    pos2.limit = 100000;
     pos2.ek = 0;
     pos2.ek_1 = 0;
     pos2.ek_sum = 0;
@@ -151,14 +151,14 @@ void pos2_Init()
 
 void pos3_Init()
 {
-    pos3.kp = 0.23;//0.22
+    pos3.kp = 0.2;//0.22
     pos3.ki = 0.0003;//0.0005
     pos3.kd = 0;
     pos3.limit = 180;
     pos3.ek = 0;
     pos3.ek_1 = 0;
     pos3.ek_sum = 0;
-		pos3.ek_sumlimit=1000;
+		pos3.ek_sumlimit=2000;
 }
 
 void pos4_Init(void)
@@ -186,9 +186,9 @@ void pos5_Init(void)
 void pos6_Init(void)
 {
     pos6.kp = 600;
-    pos6.ki = 3;//2
-    pos6.kd = 15;	
-    pos6.limit = 6000;
+    pos6.ki = 5;//2
+    pos6.kd = 0;	
+    pos6.limit = 10000;
     pos6.ek = 0;
     pos6.ek_1 = 0;
     pos6.ek_sum = 0;
